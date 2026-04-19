@@ -32,7 +32,8 @@ foreach ($name in $roms) {
         if (Test-Path $romFile) {
             Write-Host "Extracting $name.rom..." -ForegroundColor Yellow
             & "$BIN_DIR\shin-tl" rom extract $romFile $targetPath
-        } else {
+        }
+        else {
             Write-Warning "Missing $romFile, skipping extraction."
         }
     }
@@ -43,9 +44,16 @@ if (!(Test-Path $buildPatchPath)) {
     Copy-Item -Path (Join-Path $RAW_DIR "patch") -Destination $buildPatchPath -Recurse -Force
 }
 
-python create-mapping.py
+$mainCsvPath = Join-Path $BUILD_DIR "main.csv"
+if (!(Test-Path $mainCsvPath)) {
+    Write-Host "Extracting script data to CSV..." -ForegroundColor Cyan
+    & "$BIN_DIR\shin-tl" snr read higurashi-hou-v2 "$RAW_DIR\patch\main.snr" "$mainCsvPath"
+}
+
+python script-tool.py import --main "$mainCsvPath" --text "higurashi-hou.csv"
+& python create-mapping.py
 & "$BIN_DIR\fnt4-tool" rebuild "$RAW_DIR\data\newrodin.fnt" "$BUILD_DIR\patch\newrodin.fnt" $FONT_PATH -s 102 --letter-spacing 2 -c "$BUILD_DIR\mapping.toml"
-& "$BIN_DIR\shin-tl" snr rewrite higurashi-hou-v2 "$RAW_DIR\patch\main.snr" "$BUILD_DIR\higurashi-hou-mapped.csv" "$BUILD_DIR\patch\main.snr"
+& "$BIN_DIR\shin-tl" snr rewrite higurashi-hou-v2 "$RAW_DIR\patch\main.snr" "$BUILD_DIR\main-mapped.csv" "$BUILD_DIR\patch\main.snr"
 & "$BIN_DIR\shin-tl" rom create --rom-version higurashi-hou-v2 "$BUILD_DIR\patch" "$BUILD_DIR\romfs\patch.rom"
 
 Write-Host "Build Complete!" -ForegroundColor Green

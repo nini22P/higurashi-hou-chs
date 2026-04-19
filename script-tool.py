@@ -113,11 +113,22 @@ def inject_texts(df_main, df_text):
         raise ValueError("Translation alignment errors:\n" + "\n".join(errors[:10]))
 
     def process_row(row):
-        idx = row.name
         orig_text = str(row.get('s', ''))
+        idx_val = str(row.get('index', '')).strip()
         
-        if idx not in trans_dict or not trans_dict[idx]: 
+        if not idx_val:
             return orig_text
+            
+        try:
+            idx = int(float(idx_val))
+        except ValueError:
+            return orig_text
+
+        if idx not in trans_dict:
+            return ""
+
+        if trans_dict[idx] is None: 
+            return ""
         
         segs = trans_dict[idx]
         seg_idx = 0
@@ -201,14 +212,14 @@ def cmd_test(main_file):
             
         trans = str(row.get('translated', ''))
         if orig != trans:
-            mismatches.append((idx, orig, trans))
+            mismatches.append((row.get('index', idx), orig, trans))
 
     if not mismatches:
         print("Test passed. All texts match exactly.")
     else:
         print(f"Test failed. {len(mismatches)} mismatches found.")
-        for idx, orig, trans in mismatches[:5]:
-            print(f"Index: {idx}\nOriginal: {repr(orig)}\nInjected: {repr(trans)}\n")
+        for idx_val, orig, trans in mismatches[:5]:
+            print(f"Index: {idx_val}\nOriginal: {repr(orig)}\nInjected: {repr(trans)}\n")
 
 
 if __name__ == "__main__":
