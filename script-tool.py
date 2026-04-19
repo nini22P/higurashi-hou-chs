@@ -3,7 +3,7 @@ import re
 import argparse
 import sys
 
-SEP = "¦"
+SEP = "::"
 RUBY_REGEX = r'@b([^@.]+)\.@<([^@>]+)@>'
 CODE_REGEX = r'(@[abcosuvwxz][^@\n\r.]*\.|@[-+/<>[\]ekrty{|}]|@[a-zA-Z])'
 
